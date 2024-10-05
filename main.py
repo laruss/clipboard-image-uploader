@@ -35,7 +35,15 @@ def main():
                 content = Content(data=clip.content, mime_type='image/webp', name='image.webp')
                 for i in range(3):
                     logger.info(f"Uploading content, attempt {i + 1}")
-                    result = rest.upload_content(content, env.UPLOAD_URL, env.UPLOAD_FILE_KEY, env.REQUEST_TIMEOUT)
+                    result = rest.upload_content(
+                        content,
+                        url=env.UPLOAD_URL,
+                        upload_key=env.UPLOAD_FILE_KEY,
+                        timeout=env.REQUEST_TIMEOUT,
+                        login=env.LOGIN,
+                        password=env.PASSWORD,
+                        api_key=env.API_KEY
+                    )
                     if result:
                         logger.info("Content uploaded successfully")
                         utils.notify(title="Content uploaded", subtitle="Content was uploaded successfully")

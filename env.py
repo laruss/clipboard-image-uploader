@@ -21,6 +21,9 @@ class Env:
     TIME_DELTA: int = get_env_var('TIME_DELTA', int, 1)
     UPLOAD_FILE_KEY: str = get_env_var('UPLOAD_FILE_KEY', str, 'file')
     REQUEST_TIMEOUT: int = get_env_var('REQUEST_TIMEOUT', int, 60)
+    LOGIN: str = get_env_var('LOGIN', str, '')
+    PASSWORD: str = get_env_var('PASSWORD', str, '')
+    API_KEY: str = get_env_var('API_KEY', str, '')
 
 
 env = Env()

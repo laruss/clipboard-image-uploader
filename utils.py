@@ -56,6 +56,7 @@ def get_hash(item: bytes | str) -> str:
 
 
 def notify(title: str, subtitle: str):
+    """ Notify user about the event."""
     if (system := platform.system()) == "Darwin":
         client.create_notification(title=title, subtitle=subtitle)
     else:
