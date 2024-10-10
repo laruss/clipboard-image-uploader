@@ -66,3 +66,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         logger.info("Exiting...")
         exit()
+    except Exception as e:
+        utils.notify(title="Error", subtitle=f"An error occurred: {e}")
+        pass
