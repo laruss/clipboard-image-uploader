@@ -1,84 +1,77 @@
+import threading
+from PIL import ImageGrab, Image
 import time
+import hashlib
+import io
 
-import clipboard
 import rest
 import utils
 from env import env
 from logger import logger
-from app_types import OptionalClipboardItem, ClipContentType, ClipboardItem, Content
 
-current_clipboard: OptionalClipboardItem = None
-is_error = False
-dots_waited = 0
-DOTS_TO_WAIT = 20
+
+notifications: list[dict[str, str]] = []
+
+
+def process_image(image_bytes: bytes):
+    for i in range(3):
+        logger.info(f"Uploading content, attempt {i + 1}")
+        result = rest.upload_content(
+            image_bytes,
+            url=env.UPLOAD_URL,
+            upload_key=env.UPLOAD_FILE_KEY,
+            timeout=env.REQUEST_TIMEOUT,
+            login=env.LOGIN,
+            password=env.PASSWORD,
+            api_key=env.API_KEY
+        )
+        if result:
+            logger.info("Content uploaded successfully")
+            notifications.append(dict(title="Content uploaded", subtitle="Content was uploaded successfully"))
+            break
+        else:
+            logger.warning("Failed to upload content")
+    else:
+        logger.error("Failed to upload content after 3 attempts")
+        notifications.append(dict(title="Failed to upload content", subtitle="Failed to upload content after 3 attempts"))
 
 
 def main():
-    global current_clipboard, dots_waited
+    processed_hashes = set()
 
-    new_clipboard = clipboard.get_content()
-    if new_clipboard and (not current_clipboard or (current_clipboard.hash != new_clipboard.hash)):
-        dots_waited = 0
-        logger.info("New content found in clipboard")
-        if new_clipboard.type == ClipContentType.URL:
-            result = rest.download_content(url=new_clipboard.content, timeout=env.REQUEST_TIMEOUT)
-            if not result:
-                logger.warning(f"Failed to download content from {new_clipboard.content}, skipping...")
-                return
+    while True:
+        if len(notifications) > 0:
+            for notification in notifications:
+                utils.notify(title=notification["title"], subtitle=notification["subtitle"])
+            notifications.clear()
 
-            clip = ClipboardItem(
-                type=ClipContentType.IMAGE,
-                content=utils.to_webp(result),
-                hash=''  # hash does not matter here
-            )
-        else:
-            clip = new_clipboard
+        clipboard_content = ImageGrab.grabclipboard()
+        if isinstance(clipboard_content, Image.Image):
+            logger.debug("Image found in clipboard")
+            image = clipboard_content
+            width, height = image.size
 
-        content = Content(data=clip.content, mime_type='image/webp', name='image.webp')
-        for i in range(3):
-            logger.info(f"Uploading content, attempt {i + 1}")
-            result = rest.upload_content(
-                content,
-                url=env.UPLOAD_URL,
-                upload_key=env.UPLOAD_FILE_KEY,
-                timeout=env.REQUEST_TIMEOUT,
-                login=env.LOGIN,
-                password=env.PASSWORD,
-                api_key=env.API_KEY
-            )
-            if result:
-                logger.info("Content uploaded successfully")
-                utils.notify(title="Content uploaded", subtitle="Content was uploaded successfully")
-                break
-            else:
-                logger.warning("Failed to upload content")
-        else:
-            logger.error("Failed to upload content after 3 attempts")
-            utils.notify(title="Failed to upload content", subtitle="Failed to upload content after 3 attempts")
+            if width < env.MIN_SIDE_SIZE or height < env.MIN_SIDE_SIZE:
+                logger.info("Image is too small, skipping...")
+                time.sleep(env.TIME_DELTA)
+                continue
 
-        current_clipboard = new_clipboard
+            buffer = io.BytesIO()
+            image.save(buffer, format="PNG")
+            image_bytes = buffer.getvalue()
+            image_hash = hashlib.sha256(image_bytes).hexdigest()
+            if image_hash not in processed_hashes:
+                logger.info("Image is unique, processing...")
+                processed_hashes.add(image_hash)
+                thread = threading.Thread(target=process_image, args=(image_bytes,))
+                thread.start()
 
-    else:
-        if dots_waited >= DOTS_TO_WAIT - 1:
-            print('.')
-            dots_waited = 0
-        else:
-            print('.', end='', flush=True)
-            dots_waited += 1
         time.sleep(env.TIME_DELTA)
 
 
 if __name__ == "__main__":
-    logger.info("Starting...")
-    while True:
-        try:
-            main()
-            is_error = False
-        except KeyboardInterrupt:
-            logger.info("Exiting...")
-            exit()
-        except Exception as e:
-            if not is_error:
-                utils.notify(title="Error", subtitle=f"An error occurred: {e}")
-                is_error = True
-            pass
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("Bye bye!")
+        exit(0)

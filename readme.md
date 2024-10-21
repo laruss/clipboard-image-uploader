@@ -1,10 +1,14 @@
 # Clipboard Image Uploader
 
 ## Description
-This Python project is a simple clipboard checker that periodically monitors the clipboard for image links or image data. When such content is found, it sends the image to a specified server via a POST request. The server URL and other settings are configured using an `.env` file.
+
+This Python project is a simple clipboard checker that periodically monitors the clipboard for image data.
+When such content is found, it sends the image to a specified server via a POST request.
+The server URL and other settings are configured using an `.env` file.
 
 ## Features
-- Monitors clipboard for images or image links.
+
+- Monitors clipboard for images data.
 - Sends images via POST request to a configurable server.
 - Interval and upload settings are easily customizable via an `.env` file.
 
@@ -45,9 +49,15 @@ This Python project is a simple clipboard checker that periodically monitors the
    ```plaintext
    # .env example
    UPLOAD_URL=http://your-server-url/upload
+   MIN_SIDE_SIZE=100
    TIME_DELTA=5
+   UPLOAD_RETRY_COUNT=3
    UPLOAD_FILE_KEY=file
    REQUEST_TIMEOUT=60
+   LOGIN=your_login
+   PASSWORD=your_password
+   # OR
+   API_KEY=your_token
    ```
 
 ## Usage
@@ -58,7 +68,8 @@ To run the project, use:
 python main.py
 ```
 
-The script will start monitoring the clipboard at the specified interval (`TIME_DELTA`), and if it detects an image or a link to an image, it will send a POST request to the server URL specified in `UPLOAD_URL`.
+The script will start monitoring the clipboard at the specified interval (`TIME_DELTA`), and if it detects an image or a
+link to an image, it will send a POST request to the server URL specified in `UPLOAD_URL`.
 
 ## Configuration
 
@@ -66,15 +77,22 @@ All configuration options are set in the `.env` file. The following variables ar
 
 - `UPLOAD_URL`: The server endpoint to which the image will be uploaded (required).
 - `TIME_DELTA`: Time interval (in seconds) between clipboard checks. Default is 1 second.
+- `MIN_SIDE_SIZE`: Minimum side size (in pixels) for the image to be uploaded. Default is 500 pixels.
+- `TIME_DELTA`: Time interval (in seconds) between clipboard checks. Default is 1 second.
+- `UPLOAD_RETRY_COUNT`: Number of times to retry the upload in case of failure. Default is 3.
 - `UPLOAD_FILE_KEY`: The form key to be used for the image file in the POST request. Default is `'file'`.
 - `REQUEST_TIMEOUT`: Timeout for the upload request (in seconds). Default is 60 seconds.
+- `LOGIN` and `PASSWORD`: Basic authentication credentials for the server.
+- `API_KEY`: API key for the server.
+
+USE EITHER `LOGIN` AND `PASSWORD` OR `API_KEY` FOR AUTHENTICATION.
 
 ## Project Structure
 
 ```
 ├── .env                 # Environment configuration file
 ├── .env.sample          # Sample environment file
-├── app_types.py         # Contains type definitions used in the app
+├── .gitignore           # Git ignore file
 ├── clipboard.py         # Clipboard monitoring logic
 ├── env.py               # Environment variable handling
 ├── logger.py            # Logger configuration
@@ -86,10 +104,12 @@ All configuration options are set in the `.env` file. The following variables ar
 ```
 
 ## Requirements
+
 - **Python 3.12**
 - Libraries specified in `requirements.txt`
 
 ## TODO
+
 - [ ] Implement tests for all modules.
 - [ ] Add support for other media types (e.g., video).
 - [ ] Enhance logging and error handling.

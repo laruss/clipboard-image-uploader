@@ -1,7 +1,6 @@
 import cloudscraper
 
 from logger import logger
-from app_types import Content
 
 
 def download_content(url: str, timeout: int = 60) -> bytes | None:
@@ -23,7 +22,7 @@ def download_content(url: str, timeout: int = 60) -> bytes | None:
 
 
 def upload_content(
-        content: Content,
+        content: bytes,
         url: str,
         upload_key: str = 'file',
         timeout: int = 60,
@@ -34,7 +33,7 @@ def upload_content(
     """
     Upload content to the server
 
-    :param content: Content, content to upload
+    :param content: Content, bytes to upload
     :param url: str, server url
     :param upload_key: str, key to use for the upload payload
     :param timeout: int, request timeout
@@ -44,7 +43,7 @@ def upload_content(
     :return: bool, True if content was uploaded successfully, False otherwise
     """
     session = cloudscraper.session()
-    files = {upload_key: (content.name, content.data, content.mime_type)}
+    files = {upload_key: ('image.png', content, 'image/png')}
     if login and password:
         session.auth = (login, password)
     elif api_key:
