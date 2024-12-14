@@ -53,9 +53,10 @@ def upload_content(
     session = cloudscraper.session()
     method = session.post if upload_method == 'POST' else session.put
 
+    # choose either token or credentials
     if token:
         headers['Authorization'] = f'Bearer {token}'
-    if credentials:
+    elif credentials[0] and credentials[1]:
         auth = (credentials[0], credentials[1])
 
     if payload_type == 'json':

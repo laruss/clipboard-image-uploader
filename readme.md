@@ -73,6 +73,12 @@ make start-service
 The script will start monitoring the clipboard at the specified interval (`TIME_DELTA`), and if it detects an image or a
 link to an image, it will send a POST request to the server URL specified in `UPLOAD_URL`.
 
+To run dev mode (with auto-reload), use:
+
+```bash
+make dev
+```
+
 ## Configuration
 
 All configuration options are set in the `.env` file. The following variables are supported:
