@@ -1,3 +1,4 @@
+import base64
 import io
 import platform
 
@@ -6,7 +7,6 @@ from PIL import Image
 from mac_notifications import client
 
 from logger import logger
-
 
 
 def to_webp(image_bytes: bytes = None, image_path: str = None, max_size_in_kb: int = 500) -> bytes:
@@ -19,6 +19,9 @@ def to_webp(image_bytes: bytes = None, image_path: str = None, max_size_in_kb: i
     :return: converted image bytes
     """
     IM_FORMAT = "WEBP"
+    if not image_bytes and not image_path:
+        raise ValueError("Either image_bytes or image_path should be provided")
+
     with Image.open(io.BytesIO(image_bytes) if image_bytes else image_path) as img:
         output = io.BytesIO()
 
@@ -45,3 +48,13 @@ def notify(title: str, subtitle: str):
         client.create_notification(title=title, subtitle=subtitle)
     else:
         logger.warning(f"Notifications are not supported on {system}")
+
+
+def to_base64(image_bytes: bytes) -> str:
+    """
+    Convert image bytes to base64 string
+
+    :param image_bytes: bytes, image data
+    :return: str, base64 string
+    """
+    return base64.b64encode(image_bytes).decode()

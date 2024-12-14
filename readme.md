@@ -22,7 +22,7 @@ The server URL and other settings are configured using an `.env` file.
 
 2. **Set up a Virtual Environment:**
 
-   Python 3.12 is recommended for this project.
+   Python 3.12 is highly recommended for this project.
 
    ```bash
    cd <your-repo-folder>
@@ -51,7 +51,9 @@ The server URL and other settings are configured using an `.env` file.
    UPLOAD_URL=http://your-server-url/upload
    MIN_SIDE_SIZE=100
    TIME_DELTA=5
-   UPLOAD_RETRY_COUNT=3
+   UPLOAD_METHOD=
+   UPLOAD_RETRY_COUNT=
+   UPLOAD_PAYLOAD_TYPE=
    UPLOAD_FILE_KEY=file
    REQUEST_TIMEOUT=60
    LOGIN=your_login
@@ -65,7 +67,7 @@ The server URL and other settings are configured using an `.env` file.
 To run the project, use:
 
 ```bash
-python main.py
+make start-service
 ```
 
 The script will start monitoring the clipboard at the specified interval (`TIME_DELTA`), and if it detects an image or a
@@ -77,6 +79,8 @@ All configuration options are set in the `.env` file. The following variables ar
 
 - `UPLOAD_URL`: The server endpoint to which the image will be uploaded (required).
 - `TIME_DELTA`: Time interval (in seconds) between clipboard checks. Default is 1 second.
+- `UPLOAD_METHOD`: HTTP method to be used for the upload request. Default is `'POST'`.
+- `UPLOAD_PAYLOAD_TYPE`: One of three types: `json` | `form` | `buffer`. Default is `json`
 - `MIN_SIDE_SIZE`: Minimum side size (in pixels) for the image to be uploaded. Default is 500 pixels.
 - `TIME_DELTA`: Time interval (in seconds) between clipboard checks. Default is 1 second.
 - `UPLOAD_RETRY_COUNT`: Number of times to retry the upload in case of failure. Default is 3.
@@ -90,13 +94,16 @@ USE EITHER `LOGIN` AND `PASSWORD` OR `API_KEY` FOR AUTHENTICATION.
 ## Project Structure
 
 ```
-├── .env                 # Environment configuration file
+├── tests
+│   ├── rest_test.py     # Tests for the rest module
+│   └── utils_test.py    # Tests for the utils module
 ├── .env.sample          # Sample environment file
 ├── .gitignore           # Git ignore file
-├── clipboard.py         # Clipboard monitoring logic
+├── app_types.py         # Application constants and types
 ├── env.py               # Environment variable handling
 ├── logger.py            # Logger configuration
 ├── main.py              # Main application entry point
+├── Makefile             # Makefile for running the application
 ├── readme.md            # Project readme file
 ├── requirements.txt     # Python package dependencies
 ├── rest.py              # Functions for handling HTTP requests

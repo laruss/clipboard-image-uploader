@@ -8,32 +8,35 @@ import rest
 import utils
 from env import env
 from logger import logger
+from app_types import Notification
 
-
-notifications: list[dict[str, str]] = []
+notifications: list[Notification] = []
 
 
 def process_image(image_bytes: bytes):
+    image_bytes = utils.to_webp(image_bytes=image_bytes)
+
     for i in range(3):
         logger.info(f"Uploading content, attempt {i + 1}")
         result = rest.upload_content(
-            image_bytes,
+            image_data=image_bytes,
             url=env.UPLOAD_URL,
+            token=env.API_KEY,
+            credentials=(env.LOGIN, env.PASSWORD),
+            payload_type=env.UPLOAD_PAYLOAD_TYPE,
             upload_key=env.UPLOAD_FILE_KEY,
+            upload_method=env.UPLOAD_METHOD,
             timeout=env.REQUEST_TIMEOUT,
-            login=env.LOGIN,
-            password=env.PASSWORD,
-            api_key=env.API_KEY
         )
         if result:
             logger.info("Content uploaded successfully")
-            notifications.append(dict(title="Content uploaded", subtitle="Content was uploaded successfully"))
+            notifications.append(Notification(title="Content uploaded", subtitle="Content was uploaded successfully"))
             break
         else:
             logger.warning("Failed to upload content")
     else:
         logger.error("Failed to upload content after 3 attempts")
-        notifications.append(dict(title="Failed to upload content", subtitle="Failed to upload content after 3 attempts"))
+        notifications.append(Notification(title="Failed to upload content", subtitle="Failed to upload content after 3 attempts"))
 
 
 def main():
@@ -41,8 +44,8 @@ def main():
 
     while True:
         if len(notifications) > 0:
-            for notification in notifications:
-                utils.notify(title=notification["title"], subtitle=notification["subtitle"])
+            for nt in notifications:
+                utils.notify(title=nt.title, subtitle=nt.subtitle)
             notifications.clear()
 
         clipboard_content = ImageGrab.grabclipboard()
@@ -70,6 +73,7 @@ def main():
 
 
 if __name__ == "__main__":
+    logger.info("Starting the app...")
     try:
         main()
     except KeyboardInterrupt:
