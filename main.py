@@ -10,7 +10,18 @@ from env import env
 from logger import logger
 from app_types import Notification
 
+from pynput import keyboard
+
 notifications: list[Notification] = []
+IS_ACTIVE = False
+
+
+def on_activate():
+    global IS_ACTIVE
+    IS_ACTIVE = not IS_ACTIVE
+    caption = "is active" if IS_ACTIVE else "is not active"
+    logger.info(f"Hotkey activated, IS_ACTIVE: {IS_ACTIVE}")
+    notifications.append(Notification(title="Hotkey activated", subtitle=f"Now it's {caption}"))
 
 
 def process_image(image_bytes: bytes):
@@ -48,6 +59,10 @@ def main():
                 utils.notify(title=nt.title, subtitle=nt.subtitle)
             notifications.clear()
 
+        if not IS_ACTIVE:
+            time.sleep(env.TIME_DELTA)
+            continue
+
         clipboard_content = ImageGrab.grabclipboard()
         if isinstance(clipboard_content, Image.Image):
             logger.debug("Image found in clipboard")
@@ -74,6 +89,7 @@ def main():
 
 if __name__ == "__main__":
     logger.info("Starting the app...")
+    keyboard.GlobalHotKeys({'<ctrl>+<alt>+i': on_activate}).start()
     try:
         main()
     except KeyboardInterrupt:
